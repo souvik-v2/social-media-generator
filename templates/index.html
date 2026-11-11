@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SP AI Social Media Post Generator</title>
+    <script src="https://tailwindcss.com"></script>
+  </head>
+  <body
+    class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col justify-between"
+  >
+    <main class="container mx-auto px-4 py-8 max-w-4xl">
+      <header class="text-center mb-8">
+        <h1 class="text-3xl font-extrabold text-indigo-600 sm:text-4xl">
+          AI Social Media Post Generator
+        </h1>
+        <p class="text-gray-500 mt-2">
+          Turn any long-form article into platform-optimized posts instantly.
+        </p>
+      </header>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Left Side: Configuration Inputs -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div class="mb-4">
+            <label class="block text-sm font-semibold mb-2" for="article"
+              >Paste Article Text</label
+            >
+            <textarea
+              id="article"
+              rows="8"
+              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm"
+              placeholder="Paste your article or blog post content here..."
+            ></textarea>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-sm font-semibold mb-2" for="platform"
+              >Target Platform</label
+            >
+            <select
+              id="platform"
+              class="w-full p-2.5 border border-gray-300 rounded-lg outline-none text-sm"
+            >
+              <option value="LinkedIn">LinkedIn</option>
+              <option value="X (Twitter)">X (Twitter)</option>
+              <option value="Instagram">Instagram</option>
+            </select>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-sm font-semibold mb-2" for="tone"
+              >Tone of Voice</label
+            >
+            <select
+              id="tone"
+              class="w-full p-2.5 border border-gray-300 rounded-lg outline-none text-sm"
+            >
+              <option value="Professional">Professional & Informative</option>
+              <option value="Casual">Casual & Friendly</option>
+              <option value="Hype">Excited & Promotional</option>
+              <option value="Thought-Provoking">Thought-Provoking</option>
+            </select>
+          </div>
+
+          <div class="flex items-center mb-6">
+            <input
+              id="hashtags"
+              type="checkbox"
+              checked
+              class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+            />
+            <label for="hashtags" class="ml-2 text-sm font-medium text-gray-700"
+              >Include relevant hashtags</label
+            >
+          </div>
+
+          <button
+            id="generateBtn"
+            onclick="generatePost()"
+            class="w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-indigo-700 transition duration-200 shadow-md"
+          >
+            Generate Post ✨
+          </button>
+        </div>
+
+        <!-- Right Side: Live Output Preview -->
+        <div
+          class="flex flex-col justify-between bg-white p-6 rounded-xl shadow-sm border border-gray-200"
+        >
+          <div>
+            <h2
+              class="text-sm font-semibold mb-3 text-gray-500 uppercase tracking-wider"
+            >
+              Generated Post Preview
+            </h2>
+            <div
+              id="outputContainer"
+              class="bg-gray-50 p-4 rounded-lg border border-gray-200 min-h-[250px] whitespace-pre-wrap text-sm text-gray-700"
+            >
+              Your generated social media post will appear here...
+            </div>
+          </div>
+
+          <button
+            id="copyBtn"
+            onclick="copyToClipboard()"
+            class="mt-4 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition duration-200 hidden"
+          >
+            Copy to Clipboard 📋
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      async function generatePost() {
+        const article = document.getElementById("article").value;
+        const platform = document.getElementById("platform").value;
+        const tone = document.getElementById("tone").value;
+        const hashtags = document.getElementById("hashtags").checked;
+
+        const btn = document.getElementById("generateBtn");
+        const output = document.getElementById("outputContainer");
+        const copyBtn = document.getElementById("copyBtn");
+
+        if (!article.trim()) {
+          alert("Please paste some article content first.");
+          return;
+        }
+
+        // UI feedback while generating
+        btn.disabled = true;
+        btn.innerText = "Generating with AI... ⏳";
+        output.innerText = "Analyzing your article and drafting your post...";
+        copyBtn.classList.add("hidden");
+
+        try {
+          const response = await fetch("/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ article, platform, tone, hashtags }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            output.innerText = data.post;
+            copyBtn.classList.remove("hidden");
+          } else {
+            output.innerText = `Error: ${data.error}`;
+          }
+        } catch (err) {
+          output.innerText = "An unexpected connection error occurred.";
+        } finally {
+          btn.disabled = false;
+          btn.innerText = "Generate Post ✨";
+        }
+      }
+
+      function copyToClipboard() {
+        const text = document.getElementById("outputContainer").innerText;
+        navigator.clipboard.writeText(text).then(() => {
+          alert("Post copied to clipboard!");
+        });
+      }
+    </script>
+  </body>
+</html>
